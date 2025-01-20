@@ -1,24 +1,9 @@
 # Ignore build folders
-[Dd]ebug/
-[Dd]ebugPublic/
-[Dd]ist/
-[Dd]istfile/
-[Rr]elease/
-[Rr]eleasePublic/
+
 out/
 
 # Ignore Visual Studio-specific files
 .vs/
-.vs2019/
-.vs2017/
-.idea/
-.vscode/
-
-# Ignore user-specific files
-*.user
-*.userosscache
-*.suo
-*.sln.docstates
 
 # Ignore temporary files
 *.tmp
@@ -31,6 +16,7 @@ CMakeFiles/
 CMakeScripts/
 Makefile
 cmake_install.cmake
+CMakePresets.json
 
 # Ignore compiled object files
 *.obj
@@ -46,16 +32,3 @@ cmake_install.cmake
 *.sdf
 *.db
 *.log
-
-# Ignore JetBrains Rider files
-.idea/
-
-# Ignore generated files from Unity or Unreal
-# Uncomment if you're using Unity or Unreal Engine
-# .idea/
-# .vscode/
-# *.xcodeproj/
-
-# Ignore OS generated files
-.DS_Store
-Thumbs.db
