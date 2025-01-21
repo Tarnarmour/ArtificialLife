@@ -8,9 +8,14 @@
 #include "util.h"
 #include "World.h"
 
+#include <iostream>
+#include <filesystem>
+
 
 int main()
 {
-	World world{ 10, 800, 600 };
+	std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
+
+	World world{ 300, 1700, 1000 };
 	world.run();
 }

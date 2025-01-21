@@ -9,7 +9,7 @@ include_directories(${SFML_PATH}/include)
 link_directories(${SFML_PATH}/lib)
 
 # Add source to this project's executable.
-add_executable (ArtificialLife "ArtificialLife.cpp" "ArtificialLife.h" "Creature.cpp" "Creature.h"  "World.cpp" "World.h" "util.cpp" "util.h")
+add_executable (ArtificialLife "ArtificialLife.cpp" "ArtificialLife.h" "Creature.cpp" "Creature.h"  "World.cpp" "World.h" "util.cpp" "util.h" "Slider.h"  "Slider.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ArtificialLife PROPERTY CXX_STANDARD 20)
