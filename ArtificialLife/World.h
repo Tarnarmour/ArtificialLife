@@ -22,9 +22,4 @@ private:
     int height;
     sf::RenderWindow window;
     std::vector<Creature> population;
-
-    Slider interaction_range_slider;
-    Slider avoidance_weight_slider;
-    Slider coherence_weight_slider;
-    Slider edge_weight_slider;
 };

@@ -32,20 +32,9 @@ Vector2f Creature::getDirection() const {
     return direction;
 }
 
-void Creature::setInteractionRange(float new_value) {
-    interaction_range = new_value;
-}
-
-void Creature::setAvoidanceWeight(float new_value) {
-    avoidance_weight = new_value;
-}
-
-void Creature::setCoherenceWeight(float new_value) {
-    coherence_weight = new_value;
-}
-
-void Creature::setEdgeWeight(float new_value) {
-    edge_weight = new_value;
+void Creature::setState(Vector2f newPosition, Vector2f newDirection) {
+    position = newPosition;
+    direction = newDirection;
 }
 
 void Creature::move() {
@@ -53,55 +42,83 @@ void Creature::move() {
     position.y += (rand() % 5 - 2);
 }
 
-void Creature::swarm(const std::vector<Vector2f> current_positions, const std::vector<Vector2f> current_directions, int width, int height) {
-    size_t n = current_positions.size();
+Creature::State Creature::swarm(const std::vector<Creature> population, int width, int height) const {
 
-    Vector2f avoidance_vector{ 0., 0. };
-    Vector2f coherence_vector{ 0., 0. };
-    Vector2f edge_vector{ interaction_range / (10 + position.x) - interaction_range / (10 + width - position.x), interaction_range / (10 + position.y) - interaction_range / (10 + height - position.y) };
-    
-    for (int i = 0; i < current_positions.size(); i++) {
-        if (current_positions[i] == position)
+    Vector2f newPosition = position;
+    Vector2f newDirection = direction;
+
+    float A1{ 0.2 };
+    float B1{ 500.0 };
+
+    float A2{ 0.25 };
+    float B2{ 250.0 };
+
+    for (Creature otherCreature : population) {
+        if (&otherCreature == this)
             continue;
 
-        Vector2f difference = position - current_positions[i];
-        float distance = difference.length();
+        Vector2f differenceVector = otherCreature.position - position;
+        float distance = differenceVector.length();
 
-        if (distance > interaction_range)
+        if (distance < 0.1)
             continue;
 
-        avoidance_vector += difference / (distance * distance * n);
-        coherence_vector += current_directions[i] / (distance * distance * n);
+        Vector2f differenceUnitVector = differenceVector / distance;
+
+        if (direction.dot(differenceUnitVector) < -0.25)
+            continue;
+
+        newDirection += A1 * float(expf(-distance * distance / B1) - 0.001) * -differenceVector / distance;
+
+        newDirection += A2 * expf(-distance * distance / B2) * otherCreature.direction;
     }
 
-    if (avoidance_vector.length() != 0)
-        avoidance_vector /= avoidance_vector.length();
+    if (newDirection.length() > 0)
+        newDirection /= newDirection.length();
+    else
+        newDirection = direction;
 
-    if (coherence_vector.length() != 0)
-        coherence_vector /= coherence_vector.length();
+    Vector2f wallVector{ 0.0f, 0.0f };
 
-    // Normalize direction vector
-    direction += edge_vector * edge_weight + avoidance_vector * avoidance_weight + coherence_vector * coherence_weight;
-    direction /= this->direction.length();
+    float wallDist = 0.9;
 
-    this->position += velocity * this->direction;
+    if (position.x > wallDist * width) {
+        wallVector.x = -(position.x / width - wallDist) / (1 - wallDist);
+    }
+    else if (position.x < 0.1 * width) {
+        wallVector.x = position.x / width / (1 - wallDist);
+    }
 
-    if (this->position.x > width) {
-        this->position.x = float(width);
-        this->direction.x *= -1.0f;
+    if (position.y > wallDist * height) {
+        wallVector.y = -(position.y / height - wallDist) / (1 - wallDist);
     }
-    else if (this->position.x < 0) {
-        this->position.x = 0.0f;
-        this->direction.x *= -1.0f;
+    else if (position.y < 0.1 * height) {
+        wallVector.y = position.y / height / (1 - wallDist);
     }
-    if (this->position.y > height) {
-        this->position.y = float(height);
-        this->direction.y *= -1.0f;
+
+    newDirection = newDirection + wallVector * 0.1f;
+    newDirection /= newDirection.length();
+
+    newPosition += newDirection * velocity;
+
+    if (newPosition.x > width) {
+        newPosition.x = width;
+        newDirection.x *= -1;
     }
-    if (this->position.y < 0) {
-        this->position.y = 0.0f;
-        this->direction.y *= -1.0f;
+    else if (newPosition.x < 0) {
+        newPosition.x = 0;
+        newDirection.x *= -1;
     }
+    if (newPosition.y > height) {
+        newPosition.y = height;
+        newDirection.y *= -1;
+    }
+    else if (newPosition.y < 0) {
+        newPosition.y = 0;
+        newDirection.y *= -1;
+    }
+
+    return { newPosition, newDirection };
 }
 
 void Creature::draw(RenderWindow& window) const {
@@ -109,9 +126,4 @@ void Creature::draw(RenderWindow& window) const {
     creatureSprite.setFillColor(Color::Blue);
     creatureSprite.setPosition(Vector2f{position.x - size, position.y - size});
     window.draw(creatureSprite);
-
-    //CircleShape interactionRange(interaction_range);
-    //interactionRange.setFillColor(Color(0, 0, 200, 50));
-    //interactionRange.setPosition(Vector2f{ position.x - interaction_range, position.y - interaction_range });
-    //window.draw(interactionRange);
 }
