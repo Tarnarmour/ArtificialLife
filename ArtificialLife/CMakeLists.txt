@@ -26,3 +26,6 @@ add_custom_command(TARGET ArtificialLife POST_BUILD
 )
 
 # TODO: Add tests and install targets if needed.
+
+# Suppress warnings
+add_compile_options(/wd4275)

@@ -1,5 +1,6 @@
 #include <math.h>
 #include <cstdlib>
+#include <iostream>
 
 #include "util.h"
 #include "Creature.h"
@@ -47,40 +48,59 @@ Creature::State Creature::swarm(const std::vector<Creature> population, int widt
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
 
-    float A1{ 0.2 };
-    float B1{ 500.0 };
+    Vector2f alignmentVector{ 0.0f, 0.0f };
+    Vector2f averageNeighbor{ 0.0f, 0.0f };
+    Vector2f avoidanceVector{ 0.0f, 0.0f };
 
-    float A2{ 0.25 };
-    float B2{ 250.0 };
+    float n_coherence{ 0.0f };
+    float n_alignment{ 0.0f };
+    float n_avoidance{ 0.0f };
 
     for (Creature otherCreature : population) {
-        if (&otherCreature == this)
+        if (otherCreature == *this)
             continue;
 
         Vector2f differenceVector = otherCreature.position - position;
-        float distance = differenceVector.length();
 
-        if (distance < 0.1)
-            continue;
+        if (differenceVector.length() < coherenceRange) {
+            averageNeighbor += otherCreature.position;
+            n_coherence++;
+        }
 
-        Vector2f differenceUnitVector = differenceVector / distance;
+        if (differenceVector.length() < alignmentRange) {
+            alignmentVector += otherCreature.direction;
+            n_alignment++;
+        }
 
-        if (direction.dot(differenceUnitVector) < -0.25)
-            continue;
-
-        newDirection += A1 * float(expf(-distance * distance / B1) - 0.001) * -differenceVector / distance;
-
-        newDirection += A2 * expf(-distance * distance / B2) * otherCreature.direction;
+        if (differenceVector.length() < avoidanceRange) {
+            avoidanceVector += (position - otherCreature.position) / ((position - otherCreature.position).length());
+            n_avoidance++;
+        }
     }
 
-    if (newDirection.length() > 0)
-        newDirection /= newDirection.length();
-    else
-        newDirection = direction;
+    if (n_avoidance > 0 && avoidanceVector.length() > 0) {
+        avoidanceVector /= n_avoidance;
+
+        newDirection += avoidanceVector * avoidanceWeight;
+    }
+
+    if (n_coherence > 0 && averageNeighbor.length() > 0) {
+        averageNeighbor /= n_coherence;
+        Vector2f coherenceVector = averageNeighbor - position;
+        coherenceVector /= coherenceVector.length();
+
+        newDirection += coherenceVector * coherenceWeight;
+    }
+
+    if (n_alignment > 0 && alignmentVector.length() > 0) {
+        alignmentVector /= n_alignment;
+
+        newDirection += alignmentVector * alignmentWeight;
+    }
 
     Vector2f wallVector{ 0.0f, 0.0f };
 
-    float wallDist = 0.9;
+    float wallDist = 0.9f;
 
     if (position.x > wallDist * width) {
         wallVector.x = -(position.x / width - wallDist) / (1 - wallDist);
@@ -97,6 +117,7 @@ Creature::State Creature::swarm(const std::vector<Creature> population, int widt
     }
 
     newDirection = newDirection + wallVector * 0.1f;
+
     newDirection /= newDirection.length();
 
     newPosition += newDirection * velocity;
@@ -123,7 +144,24 @@ Creature::State Creature::swarm(const std::vector<Creature> population, int widt
 
 void Creature::draw(RenderWindow& window) const {
     CircleShape creatureSprite(size);
-    creatureSprite.setFillColor(Color::Blue);
+    creatureSprite.setFillColor(Color::Color(255, 255, 255, 255));
     creatureSprite.setPosition(Vector2f{position.x - size, position.y - size});
     window.draw(creatureSprite);
+}
+
+void Creature::drawRanges(RenderWindow& window) const {
+    CircleShape coherenceSprite(coherenceRange);
+    coherenceSprite.setFillColor(Color::Color(0, 255, 0, 1));
+    coherenceSprite.setPosition(Vector2f{ position.x - coherenceRange, position.y - coherenceRange });
+    window.draw(coherenceSprite);
+
+    CircleShape avoidanceSprite(avoidanceRange);
+    avoidanceSprite.setFillColor(Color::Color(255, 0, 0, 5));
+    avoidanceSprite.setPosition(Vector2f{ position.x - avoidanceRange, position.y - avoidanceRange });
+    window.draw(avoidanceSprite);
+
+    CircleShape alignmentSprite(alignmentRange);
+    alignmentSprite.setFillColor(Color::Color(0, 0, 255, 2));
+    alignmentSprite.setPosition(Vector2f{ position.x - alignmentRange, position.y - alignmentRange });
+    window.draw(alignmentSprite);
 }

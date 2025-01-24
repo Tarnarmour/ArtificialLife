@@ -18,7 +18,7 @@ World::World(int popsize, int width, int height) :
     this->window.setFramerateLimit(60);
     this->window.setPosition(Vector2i{ 0, 0 });
 
-    float border_proportion = 0.01;
+    float border_proportion{ 0.01f };
 
     for (int i = 0; i < popsize; i++) {
         Creature creature{ getRandomFloat(border_proportion * width, (1 - border_proportion) * width), getRandomFloat(border_proportion * height, (1 - border_proportion) * height), getRandomFloat(-PI, PI)};
@@ -55,6 +55,9 @@ void World::update() {
 
 void World::draw() {
     this->window.clear();
+    //for (const Creature& creature : this->population) {
+    //    creature.drawRanges(this->window);
+    //}
     for (const Creature& creature : this->population) {
         creature.draw(this->window);
     }

@@ -16,6 +16,6 @@ int main()
 {
 	std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
 
-	World world{ 300, 1700, 1000 };
+	World world{ 600, 1700, 1000 };
 	world.run();
 }
