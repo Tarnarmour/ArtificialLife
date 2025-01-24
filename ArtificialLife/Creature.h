@@ -32,6 +32,9 @@ public:
     // Methods
     void move();
     State swarm(const std::vector<Creature> population, int width, int height) const;
+
+    // Semi-deprecated version of swarm
+    State swarm_exp(const std::vector<Creature> population, int width, int height) const;
     void draw(sf::RenderWindow& window) const;
     void drawRanges(sf::RenderWindow& window) const;
 
