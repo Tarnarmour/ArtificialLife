@@ -230,17 +230,17 @@ void Creature::draw(RenderWindow& window) const {
 
 void Creature::drawRanges(RenderWindow& window) const {
     CircleShape coherenceSprite(coherenceRange);
-    coherenceSprite.setFillColor(Color::Color(0, 255, 0, 1));
+    coherenceSprite.setFillColor(Color::Color(0, 255, 0, 2));
     coherenceSprite.setPosition(Vector2f{ position.x - coherenceRange, position.y - coherenceRange });
     window.draw(coherenceSprite);
 
     CircleShape avoidanceSprite(avoidanceRange);
-    avoidanceSprite.setFillColor(Color::Color(255, 0, 0, 5));
+    avoidanceSprite.setFillColor(Color::Color(255, 0, 0, 20));
     avoidanceSprite.setPosition(Vector2f{ position.x - avoidanceRange, position.y - avoidanceRange });
     window.draw(avoidanceSprite);
 
     CircleShape alignmentSprite(alignmentRange);
-    alignmentSprite.setFillColor(Color::Color(0, 0, 255, 2));
+    alignmentSprite.setFillColor(Color::Color(0, 0, 255, 20));
     alignmentSprite.setPosition(Vector2f{ position.x - alignmentRange, position.y - alignmentRange });
     window.draw(alignmentSprite);
 }

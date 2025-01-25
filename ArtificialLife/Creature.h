@@ -38,9 +38,10 @@ public:
     void draw(sf::RenderWindow& window) const;
     void drawRanges(sf::RenderWindow& window) const;
 
-private:
     sf::Vector2f direction;
     sf::Vector2f position;
+
+protected:
     float velocity = 3.5f;
     float size = 5.0f;
 

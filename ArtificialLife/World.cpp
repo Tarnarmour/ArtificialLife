@@ -55,9 +55,9 @@ void World::update() {
 
 void World::draw() {
     this->window.clear();
-    //for (const Creature& creature : this->population) {
-    //    creature.drawRanges(this->window);
-    //}
+    for (const Creature& creature : this->population) {
+        creature.drawRanges(this->window);
+    }
     for (const Creature& creature : this->population) {
         creature.draw(this->window);
     }
