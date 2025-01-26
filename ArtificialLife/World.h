@@ -8,11 +8,10 @@
 
 class World {
 public:
-    World(int popsize, int width, int height);
-    World() : World(10, 800, 600) {}
+    World(int preyPopSize, int predatorPopSize, int width, int height);
+    World() : World(10, 1, 800, 600) {}
 
     void run();
-    void addCreature(Creature creature);
     void clear();
     void update();
     void draw();
@@ -21,5 +20,5 @@ private:
     int width;
     int height;
     sf::RenderWindow window;
-    std::vector<Creature> population;
+    std::vector<std::unique_ptr<Creature>> population;
 };

@@ -1,15 +1,18 @@
 #include <math.h>
 #include <SFML/Graphics.hpp>
 #include <random>
+#include <iostream>
 
 #include "util.h"
 #include "World.h"
 #include "Creature.h"
+#include "Prey.h"
+#include "Predator.h"
 #include "Slider.h"
 
 using namespace sf;
 
-World::World(int popsize, int width, int height) :
+World::World(int preyPopSize, int predatorPopSize, int width, int height) :
     width(width),
     height(height)
 {
@@ -20,48 +23,50 @@ World::World(int popsize, int width, int height) :
 
     float border_proportion{ 0.01f };
 
-    for (int i = 0; i < popsize; i++) {
-        Creature creature{ getRandomFloat(border_proportion * width, (1 - border_proportion) * width), getRandomFloat(border_proportion * height, (1 - border_proportion) * height), getRandomFloat(-PI, PI)};
-        this->addCreature(creature);
+    for (int i = 0; i < preyPopSize; i++) {
+
+        float x = getRandomFloat(border_proportion * width, (1 - border_proportion) * width);
+        float y = getRandomFloat(border_proportion * height, (1 - border_proportion) * height);
+        float theta = getRandomFloat(-PI, PI);
+
+        population.push_back(std::make_unique<Prey>(x, y, theta));
+    }
+
+    for (int i = 0; i < predatorPopSize; i++) {
+        float x = getRandomFloat(border_proportion * width, (1 - border_proportion) * width);
+        float y = getRandomFloat(border_proportion * height, (1 - border_proportion) * height);
+        float theta = getRandomFloat(-PI, PI);
+
+        population.push_back(std::make_unique<Predator>(x, y, theta));
     }
 }
 
-void World::addCreature(Creature creature) {
-    this->population.push_back(creature);
-}
-
 void World::clear() {
-    this->population = std::vector<Creature>();
+    population = std::vector<std::unique_ptr<Creature>>();
 }
 
 void World::update() {
 
-    std::vector<Vector2f> current_positions(population.size());
-    std::vector<Vector2f> current_directions(population.size());
-    
-    std::transform(population.begin(), population.end(), current_positions.begin(), [](const Creature& creature) {return creature.getPosition(); });
-    std::transform(population.begin(), population.end(), current_directions.begin(), [](const Creature& creature) {return creature.getDirection(); });
-
     std::vector<Creature::State> newStates(population.size());
 
     for (size_t i = 0; i < population.size(); i++) {
-        newStates[i] = population[i].swarm(population, width, height);
+        newStates[i] = population[i]->swarm(population, width, height);
     }
 
     for (size_t i = 0; i < population.size(); i++) {
-        population[i].setState(newStates[i].position, newStates[i].direction);
+        population[i]->setState(newStates[i].position, newStates[i].direction);
     }
 }
 
 void World::draw() {
-    this->window.clear();
-    for (const Creature& creature : this->population) {
-        creature.drawRanges(this->window);
+    window.clear();
+    //for (auto& creature : population) {
+    //    creature->drawRanges(window);
+    //}
+    for (auto& creature : population) {
+        creature->draw(this->window);
     }
-    for (const Creature& creature : this->population) {
-        creature.draw(this->window);
-    }
-    this->window.display();
+    window.display();
 }
 
 void World::run() {

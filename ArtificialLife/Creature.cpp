@@ -43,7 +43,7 @@ void Creature::move() {
     position.y += (rand() % 5 - 2);
 }
 
-Creature::State Creature::swarm(const std::vector<Creature> population, int width, int height) const {
+Creature::State Creature::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const {
 
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
@@ -56,24 +56,24 @@ Creature::State Creature::swarm(const std::vector<Creature> population, int widt
     float n_alignment{ 0.0f };
     float n_avoidance{ 0.0f };
 
-    for (Creature otherCreature : population) {
-        if (otherCreature == *this)
+    for (const auto& otherCreature : population) {
+        if (*otherCreature == *this)
             continue;
 
-        Vector2f differenceVector = otherCreature.position - position;
+        Vector2f differenceVector = otherCreature->position - position;
 
         if (differenceVector.length() < coherenceRange) {
-            averageNeighbor += otherCreature.position;
+            averageNeighbor += otherCreature->position;
             n_coherence++;
         }
 
         if (differenceVector.length() < alignmentRange) {
-            alignmentVector += otherCreature.direction;
+            alignmentVector += otherCreature->direction;
             n_alignment++;
         }
 
         if (differenceVector.length() < avoidanceRange) {
-            avoidanceVector += (position - otherCreature.position) / ((position - otherCreature.position).length());
+            avoidanceVector += (position - otherCreature->position) / ((position - otherCreature->position).length());
             n_avoidance++;
         }
     }
@@ -142,7 +142,7 @@ Creature::State Creature::swarm(const std::vector<Creature> population, int widt
     return { newPosition, newDirection };
 }
 
-Creature::State Creature::swarm_exp(const std::vector<Creature> population, int width, int height) const {
+Creature::State Creature::swarm_exp(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const {
 
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
@@ -153,11 +153,11 @@ Creature::State Creature::swarm_exp(const std::vector<Creature> population, int 
     float A2{ 0.25 };
     float B2{ 250.0 };
 
-    for (Creature otherCreature : population) {
-        if (&otherCreature == this)
+    for (auto& otherCreature : population) {
+        if (*otherCreature == *this)
             continue;
 
-        Vector2f differenceVector = otherCreature.position - position;
+        Vector2f differenceVector = otherCreature->position - position;
         float distance = differenceVector.length();
 
         if (distance < 0.1)
@@ -170,7 +170,7 @@ Creature::State Creature::swarm_exp(const std::vector<Creature> population, int 
 
         newDirection += A1 * float(expf(-distance * distance / B1) - 0.001) * -differenceVector / distance;
 
-        newDirection += A2 * expf(-distance * distance / B2) * otherCreature.direction;
+        newDirection += A2 * expf(-distance * distance / B2) * otherCreature->direction;
     }
 
     if (newDirection.length() > 0)

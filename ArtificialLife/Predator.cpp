@@ -1,9 +1,9 @@
-#include "Creature.h"
 #include "Predator.h"
+#include "Creature.h"
 
 using namespace sf;
 
-Creature::State Predator::hunt(const std::vector<Creature>& population, float width, float height) const {
+Creature::State Predator::hunt(const std::vector<std::unique_ptr<Creature>>& population, float width, float height) const {
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
 
@@ -15,24 +15,24 @@ Creature::State Predator::hunt(const std::vector<Creature>& population, float wi
     float n_alignment{ 0.0f };
     float n_avoidance{ 0.0f };
 
-    for (Creature otherCreature : population) {
-        if (otherCreature == *this)
+    for (auto& otherCreature : population) {
+        if (*otherCreature == *this)
             continue;
 
-        Vector2f differenceVector = otherCreature.position - position;
+        Vector2f differenceVector = otherCreature->position - position;
 
         if (differenceVector.length() < coherenceRange) {
-            averageNeighbor += otherCreature.position;
+            averageNeighbor += otherCreature->position;
             n_coherence++;
         }
 
         if (differenceVector.length() < alignmentRange) {
-            alignmentVector += otherCreature.direction;
+            alignmentVector += otherCreature->direction;
             n_alignment++;
         }
 
         if (differenceVector.length() < avoidanceRange) {
-            avoidanceVector += (position - otherCreature.position) / ((position - otherCreature.position).length());
+            avoidanceVector += (position - otherCreature->position) / ((position - otherCreature->position).length());
             n_avoidance++;
         }
     }
@@ -99,4 +99,11 @@ Creature::State Predator::hunt(const std::vector<Creature>& population, float wi
     }
 
     return { newPosition, newDirection };
+}
+
+void Predator::draw(RenderWindow& window) const {
+    CircleShape creatureSprite(size);
+    creatureSprite.setFillColor(Color::Color(255, 50, 50, 255));
+    creatureSprite.setPosition(Vector2f{ position.x - size, position.y - size });
+    window.draw(creatureSprite);
 }
