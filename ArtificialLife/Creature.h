@@ -37,7 +37,7 @@ public:
     void move();
 
     // Range-based swarming
-    State swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const;
+    virtual State swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const;
 
     // Semi-deprecated version of swarm
     State swarm_exp(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const;

@@ -3,16 +3,15 @@
 
 using namespace sf;
 
-Creature::State Predator::hunt(const std::vector<std::unique_ptr<Creature>>& population, float width, float height) const {
+Creature::State Predator::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const {
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
 
-    Vector2f alignmentVector{ 0.0f, 0.0f };
     Vector2f averageNeighbor{ 0.0f, 0.0f };
+    Vector2f nearestVector{ 0.0f, 0.0f };
     Vector2f avoidanceVector{ 0.0f, 0.0f };
 
-    float n_coherence{ 0.0f };
-    float n_alignment{ 0.0f };
+    float n_neighbor{ 0.0f };
     float n_avoidance{ 0.0f };
 
     for (auto& otherCreature : population) {
@@ -21,40 +20,37 @@ Creature::State Predator::hunt(const std::vector<std::unique_ptr<Creature>>& pop
 
         Vector2f differenceVector = otherCreature->position - position;
 
-        if (differenceVector.length() < coherenceRange) {
-            averageNeighbor += otherCreature->position;
-            n_coherence++;
-        }
+        if (otherCreature->getType() == Creature::Type::PREY) {
 
-        if (differenceVector.length() < alignmentRange) {
-            alignmentVector += otherCreature->direction;
-            n_alignment++;
-        }
+            if (differenceVector.length() < huntRange) {
+                averageNeighbor += otherCreature->position;
+                n_neighbor++;
 
-        if (differenceVector.length() < avoidanceRange) {
-            avoidanceVector += (position - otherCreature->position) / ((position - otherCreature->position).length());
+                if (differenceVector.length() < nearestRange && differenceVector.length() < nearestVector.length() || nearestVector.length() == 0.0) {
+                    nearestVector = differenceVector;
+                }
+            }
+        }
+        else if (differenceVector.length() < avoidanceRange) {
+            avoidanceVector += differenceVector / differenceVector.lengthSquared();
             n_avoidance++;
         }
     }
 
-    if (n_avoidance > 0 && avoidanceVector.length() > 0) {
-        avoidanceVector /= n_avoidance;
-
-        newDirection += avoidanceVector * avoidanceWeight;
-    }
-
-    if (n_coherence > 0 && averageNeighbor.length() > 0) {
-        averageNeighbor /= n_coherence;
+    if (n_neighbor > 0 && averageNeighbor.length() > 0) {
+        averageNeighbor /= n_neighbor;
         Vector2f coherenceVector = averageNeighbor - position;
         coherenceVector /= coherenceVector.length();
 
-        newDirection += coherenceVector * coherenceWeight;
+        newDirection += coherenceVector * groupWeight;
     }
 
-    if (n_alignment > 0 && alignmentVector.length() > 0) {
-        alignmentVector /= n_alignment;
+    if (nearestVector.length() > 0.0) {
+        newDirection += nearestVector / nearestVector.length() * nearestWeight;
+    }
 
-        newDirection += alignmentVector * alignmentWeight;
+    if (n_avoidance > 0 && avoidanceVector.length() > 0) {
+        newDirection += -avoidanceVector / avoidanceVector.length() * avoidanceWeight;
     }
 
     Vector2f wallVector{ 0.0f, 0.0f };
@@ -64,39 +60,22 @@ Creature::State Predator::hunt(const std::vector<std::unique_ptr<Creature>>& pop
     if (position.x > wallDist * width) {
         wallVector.x = -(position.x / width - wallDist) / (1 - wallDist);
     }
-    else if (position.x < 0.1 * width) {
-        wallVector.x = position.x / width / (1 - wallDist);
+    else if (position.x < (1 - wallDist) * width) {
+        wallVector.x = -(position.x / width + wallDist - 1) / (1 - wallDist);
     }
 
     if (position.y > wallDist * height) {
         wallVector.y = -(position.y / height - wallDist) / (1 - wallDist);
     }
-    else if (position.y < 0.1 * height) {
-        wallVector.y = position.y / height / (1 - wallDist);
+    else if (position.y < (1 - wallDist) * height) {
+        wallVector.y = -(position.y / height + wallDist - 1) / (1 - wallDist);
     }
 
-    newDirection = newDirection + wallVector * 0.1f;
+    newDirection += wallVector * wallWeight;
 
     newDirection /= newDirection.length();
 
-    newPosition += newDirection * velocity;
-
-    if (newPosition.x > width) {
-        newPosition.x = width;
-        newDirection.x *= -1;
-    }
-    else if (newPosition.x < 0) {
-        newPosition.x = 0;
-        newDirection.x *= -1;
-    }
-    if (newPosition.y > height) {
-        newPosition.y = height;
-        newDirection.y *= -1;
-    }
-    else if (newPosition.y < 0) {
-        newPosition.y = 0;
-        newDirection.y *= -1;
-    }
+    newPosition += velocity * newDirection;
 
     return { newPosition, newDirection };
 }
