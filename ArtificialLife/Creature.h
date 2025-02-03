@@ -10,7 +10,7 @@ public:
         sf::Vector2f direction;
     };
 
-    enum class Type { NONE, PREDATOR, PREY };
+    enum class Type { NONE, PREDATOR, PREY, DEAD };
 
     // Constructors
     Creature();
@@ -37,7 +37,7 @@ public:
     void move();
 
     // Range-based swarming
-    virtual State swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const;
+    virtual State swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height);
 
     // Semi-deprecated version of swarm
     State swarm_exp(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const;
@@ -53,7 +53,11 @@ public:
     sf::Vector2f direction;
     sf::Vector2f position;
 
+    bool alive = true;
+
 protected:
+    Type creatureType{ Type::NONE };
+
     float velocity = 3.5f;
     float size = 5.0f;
 

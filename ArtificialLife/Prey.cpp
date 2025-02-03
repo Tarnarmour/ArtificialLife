@@ -3,9 +3,12 @@
 
 using namespace sf;
 
-Creature::State Prey::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const {
+Creature::State Prey::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) {
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
+
+    if (!alive)
+        return { position, direction };
 
     Vector2f alignmentVector{ 0.0f, 0.0f };
     Vector2f averageNeighbor{ 0.0f, 0.0f };
@@ -40,11 +43,16 @@ Creature::State Prey::swarm(const std::vector<std::unique_ptr<Creature>>& popula
                 n_avoidance++;
             }
         }
-        else {
+        else if (otherCreature->getType() == Type::PREDATOR) {
             if (differenceVector.length() < fleeRange) {
                 fleeVector += fleeRange * fleeRange * differenceVector / (differenceVector.length() * differenceVector.length());
                 n_flee++;
             }
+            //if (differenceVector.length() < 10.0f) {
+            //    alive = false;
+            //    creatureType = Creature::Type::DEAD;
+            //    return { position, direction };
+            //}
         }
     }
 
@@ -103,7 +111,10 @@ Creature::State Prey::swarm(const std::vector<std::unique_ptr<Creature>>& popula
 
 void Prey::draw(RenderWindow& window) const {
     CircleShape creatureSprite(size);
-    creatureSprite.setFillColor(Color::Color(50, 255, 50, 255));
+    if (alive)
+        creatureSprite.setFillColor(Color::Color(50, 255, 50, 255));
+    else
+        creatureSprite.setFillColor(Color::Color(100, 100, 100, 255));
     creatureSprite.setPosition(Vector2f{ position.x - size, position.y - size });
     window.draw(creatureSprite);
 }

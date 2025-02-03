@@ -7,13 +7,14 @@
 
 using namespace sf;
 
-Creature::Creature() : position{ 0, 0 }, direction{ 1, 0 } {
+Creature::Creature() : position{ 0, 0 }, direction{ 1, 0 }, alive(true) {
 
 }
 
 Creature::Creature(float x, float y, float theta) {
     position = Vector2f(x, y);
     direction = Vector2f(std::cos(theta), std::sin(theta));
+    alive = true;
 }
 
 Creature::Creature(Vector2f position, Vector2f direction) : position(position) {
@@ -43,7 +44,7 @@ void Creature::move() {
     position.y += (rand() % 5 - 2);
 }
 
-Creature::State Creature::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const {
+Creature::State Creature::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) {
 
     Vector2f newPosition = position;
     Vector2f newDirection = direction;

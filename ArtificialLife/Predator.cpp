@@ -3,7 +3,7 @@
 
 using namespace sf;
 
-Creature::State Predator::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) const {
+Creature::State Predator::swarm(const std::vector<std::unique_ptr<Creature>>& population, int width, int height) {
     Vector2f newPosition = position;
     Vector2f newDirection = direction;
 
@@ -15,25 +15,25 @@ Creature::State Predator::swarm(const std::vector<std::unique_ptr<Creature>>& po
     float n_avoidance{ 0.0f };
 
     for (auto& otherCreature : population) {
-        if (*otherCreature == *this)
-            continue;
+        if (*otherCreature != *this) {
 
-        Vector2f differenceVector = otherCreature->position - position;
+            Vector2f differenceVector = otherCreature->position - position;
 
-        if (otherCreature->getType() == Creature::Type::PREY) {
+            if (otherCreature->getType() == Creature::Type::PREY && otherCreature->alive) {
 
-            if (differenceVector.length() < huntRange) {
-                averageNeighbor += otherCreature->position;
-                n_neighbor++;
+                if (differenceVector.length() < huntRange) {
+                    averageNeighbor += otherCreature->position;
+                    n_neighbor++;
 
-                if (differenceVector.length() < nearestRange && differenceVector.length() < nearestVector.length() || nearestVector.length() == 0.0) {
-                    nearestVector = differenceVector;
+                    if (differenceVector.length() < nearestRange && differenceVector.length() < nearestVector.length() || nearestVector.length() == 0.0) {
+                        nearestVector = differenceVector;
+                    }
                 }
             }
-        }
-        else if (differenceVector.length() < avoidanceRange) {
-            avoidanceVector += differenceVector / differenceVector.lengthSquared();
-            n_avoidance++;
+            else if (otherCreature->getType() == Creature::Type::PREDATOR && differenceVector.length() < avoidanceRange) {
+                avoidanceVector += differenceVector / differenceVector.lengthSquared();
+                n_avoidance++;
+            }
         }
     }
 
